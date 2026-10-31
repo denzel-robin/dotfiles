@@ -22,5 +22,7 @@ return {
     opts.event_handlers = opts.event_handlers or {}
     table.insert(opts.event_handlers, { event = "file_opened", handler = rail.on_file_opened })
     table.insert(opts.event_handlers, { event = "neo_tree_window_after_close", handler = rail.on_tree_closed })
+    -- re-apply the selected-item highlight after every redraw of the tree
+    table.insert(opts.event_handlers, { event = "after_render", handler = function() vim.schedule(rail.mark_selected) end })
   end,
 }

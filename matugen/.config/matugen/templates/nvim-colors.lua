@@ -18,7 +18,7 @@ vim.g.colors_name = "rice"
 vim.g.rice_palette = {
   surface = "{{colors.surface.default.hex}}", container = "{{colors.surface_container.default.hex}}", container_high = "{{colors.surface_container_high.default.hex}}",
   text = "{{colors.on_surface.default.hex}}", subtle = "{{colors.on_surface_variant.default.hex}}", outline = "{{colors.outline.default.hex}}",
-  primary = "{{colors.primary.default.hex}}", secondary = "{{colors.secondary.default.hex}}", tertiary = "{{colors.tertiary.default.hex}}",
+  primary = "{{colors.primary.default.hex}}", primary_container = "{{colors.primary_container.default.hex}}", on_primary_container = "{{colors.on_primary_container.default.hex}}", secondary = "{{colors.secondary.default.hex}}", tertiary = "{{colors.tertiary.default.hex}}",
   red = "{{colors.red.default.hex}}", green = "{{colors.green.default.hex}}", yellow = "{{colors.yellow.default.hex}}", cyan = "{{colors.cyan.default.hex}}",
 }
 local p = vim.g.rice_palette
@@ -45,6 +45,9 @@ hl("CursorLine", {})
 hl("CursorLineSign", {})
 hl("CursorLineFold", {})
 hl("CursorLineNr", { fg = p.primary, bold = true })
+-- File tree: the selected item is a filled accent pill (name colour forced by lua/rice/rail.lua)
+hl("NeoTreeCursorLine", { bg = p.primary_container })
+hl("RiceTreeSelected", { fg = p.on_primary_container, bold = true })
 hl("WinSeparator", { fg = p.container_high })
 -- ...but keep popups slightly tinted so text stays readable over any wallpaper
 hl("NormalFloat", { fg = p.text, bg = p.container })

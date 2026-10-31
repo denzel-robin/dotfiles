@@ -303,6 +303,28 @@ function M.on_tree_closed()
   end
 end
 
+-- ── Selected item in the tree ────────────────────────────────────────────────
+-- neo-tree colours each name itself, which beats the cursor-line style, so the
+-- selected row's text is recoloured with a high-priority highlight.
+local sel_ns = api.nvim_create_namespace("rice-tree-selected")
+
+function M.mark_selected()
+  local win = M.tree_win()
+  if not win then
+    return
+  end
+  local buf = api.nvim_win_get_buf(win)
+  api.nvim_buf_clear_namespace(buf, sel_ns, 0, -1)
+  local row = api.nvim_win_get_cursor(win)[1] - 1
+  local line = api.nvim_buf_get_lines(buf, row, row + 1, false)[1] or ""
+  local first = line:find("%S")
+  if first then
+    api.nvim_buf_set_extmark(buf, sel_ns, row, first - 1, {
+      end_row = row, end_col = #line, hl_group = "RiceTreeSelected", priority = 4096,
+    })
+  end
+end
+
 -- ── Autocommands ─────────────────────────────────────────────────────────────
 
 local function wants_rail(buf)
@@ -366,6 +388,15 @@ function M.setup()
           vim.cmd("quitall")
         end
       end)
+    end,
+  })
+
+  api.nvim_create_autocmd({ "CursorMoved", "WinEnter", "BufEnter" }, {
+    group = group,
+    callback = function()
+      if is_tree(api.nvim_get_current_win()) then
+        M.mark_selected()
+      end
     end,
   })
 
