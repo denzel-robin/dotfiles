@@ -14,7 +14,7 @@ Column {
 
     spacing: Appearance.spacing.normal
 
-    function activate(): void {
+    function activate(gpu): void {
         if (grid.currentIndex >= 0 && grid.currentIndex < files.length)
             Wallpapers.set(files[grid.currentIndex]);
     }

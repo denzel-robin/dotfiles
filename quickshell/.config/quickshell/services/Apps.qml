@@ -75,15 +75,54 @@ Singleton {
         return entry ? iconFor(entry) : Quickshell.iconPath(cls.toLowerCase(), true);
     }
 
-    function launch(e): void {
+    // ── NVIDIA GPU (PRIME render offload) ──
+    // Apps render on the AMD iGPU by default; these variables move an app to the RTX 3050.
+    readonly property list<string> gpuEnv: [
+        "__NV_PRIME_RENDER_OFFLOAD=1",
+        "__GLX_VENDOR_LIBRARY_NAME=nvidia",
+        "__VK_LAYER_NV_optimus=NVIDIA_only",
+        "__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json"
+    ]
+    property var gpuApps: ({})   // app id -> true: always open on the NVIDIA GPU
+
+    function alwaysGpu(e): bool {
+        return gpuApps[e?.id] === true;
+    }
+
+    function toggleAlwaysGpu(e): void {
+        const g = Object.assign({}, gpuApps);
+        if (g[e.id])
+            delete g[e.id];
+        else
+            g[e.id] = true;
+        gpuApps = g;
+        gpuFile.setText(JSON.stringify(gpuApps));
+    }
+
+    // gpu: open on the NVIDIA GPU this time (apps marked "always" use it anyway)
+    function launch(e, gpu): void {
         usage[e.id] = (usage[e.id] ?? 0) + 1;
         usageFile.setText(JSON.stringify(usage));
         usageChanged();
 
-        if (e.runInTerminal)
-            Quickshell.execDetached(["kitty", "-e", ...e.command]);
+        const cmd = e.runInTerminal ? ["kitty", "-e", ...e.command] : [...e.command];
+        if (gpu || alwaysGpu(e))
+            Quickshell.execDetached(["env", ...gpuEnv, ...cmd]);
+        else if (e.runInTerminal)
+            Quickshell.execDetached(cmd);
         else
             e.execute();
+    }
+
+    FileView {
+        id: gpuFile
+        path: `${Quickshell.env("HOME")}/.local/state/rice/gpu-apps.json`
+        printErrors: false
+        onLoaded: {
+            try {
+                root.gpuApps = JSON.parse(text());
+            } catch (e) {}
+        }
     }
 
     FileView {

@@ -12,7 +12,7 @@ Overlay {
     name: "launcher"
 
     readonly property var modes: [
-        { id: "apps", icon: "apps", label: "Apps", hint: "Search apps, or = to calculate" },
+        { id: "apps", icon: "apps", label: "Apps", hint: "Search apps · = calculate · Ctrl+Enter on GPU" },
         { id: "wallpapers", icon: "wallpaper", label: "Wallpapers", hint: "Filter wallpapers" },
         { id: "clipboard", icon: "content_paste", label: "Clipboard", hint: "Search clipboard · Shift+Del removes" }
     ]
@@ -169,7 +169,7 @@ Overlay {
                         if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
                             root.cycleMode(event.key === Qt.Key_Backtab ? -1 : 1);
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            root.view.activate();
+                            root.view.activate((event.modifiers & Qt.ControlModifier) !== 0);   // Ctrl+Enter: on the NVIDIA GPU
                         } else if (event.key === Qt.Key_Escape) {
                             Panels.close();
                         } else if (root.view.handleKey(event)) {

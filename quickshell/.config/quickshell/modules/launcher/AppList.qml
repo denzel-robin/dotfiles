@@ -17,17 +17,33 @@ ColumnLayout {
 
     spacing: Appearance.spacing.small
 
-    function activate(): void {
+    property int menuFor: -1   // index of the app whose right-click menu is open
+    property real menuY: 0
+
+    // Open the right-click menu under (or, near the bottom, above) the app's row
+    function openMenu(index: int): void {
+        const row = list.itemAtIndex(index);
+        if (!row)
+            return;
+        const below = row.mapToItem(menuLayer, 0, row.height).y + 2;
+        const listBottom = list.mapToItem(menuLayer, 0, list.height).y;
+        const h = 3 * 34 + 8;   // three items (the menu's real height isn't known until it's filled)
+        menuY = below + h > listBottom ? row.mapToItem(menuLayer, 0, 0).y - h - 2 : below;
+        menuFor = index;
+    }
+
+    function activate(gpu): void {
         if (expr && result) {
             Quickshell.execDetached(["wl-copy", result]);
             Panels.close();
         } else if (list.currentItem) {
-            Apps.launch(list.currentItem.modelData);
+            Apps.launch(list.currentItem.modelData, gpu);
             Panels.close();
         }
     }
 
     function handleKey(event): bool {
+        menuFor = -1;
         if (event.key === Qt.Key_Down) {
             list.incrementCurrentIndex();
             return true;
@@ -118,7 +134,10 @@ ColumnLayout {
             values: Apps.search(root.query).slice(0, 50)
         }
 
-        onCountChanged: currentIndex = 0
+        onCountChanged: {
+            currentIndex = 0;
+            root.menuFor = -1;
+        }
 
         highlight: Rectangle {
             radius: Appearance.rounding.normal
@@ -172,12 +191,35 @@ ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 1
 
-                    StyledText {
+                    RowLayout {
                         Layout.fillWidth: true
-                        text: item.modelData.name
-                        font.pixelSize: Appearance.font.normal + 1
-                        font.weight: Font.Medium
-                        elide: Text.ElideRight
+                        spacing: Appearance.spacing.small
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: item.modelData.name
+                            font.pixelSize: Appearance.font.normal + 1
+                            font.weight: Font.Medium
+                            elide: Text.ElideRight
+                        }
+
+                        // Always opens on the NVIDIA GPU
+                        Rectangle {
+                            visible: Apps.alwaysGpu(item.modelData)
+                            implicitWidth: gpuTag.implicitWidth + 10
+                            implicitHeight: 16
+                            radius: 8
+                            color: Colors.tertiaryContainer
+
+                            StyledText {
+                                id: gpuTag
+                                anchors.centerIn: parent
+                                text: "GPU"
+                                font.pixelSize: 9
+                                font.weight: Font.DemiBold
+                                color: Colors.textOnTertiaryContainer
+                            }
+                        }
                     }
 
                     StyledText {
@@ -196,10 +238,91 @@ ColumnLayout {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
                 onPositionChanged: mouse => { if (Panels.pointerMoved(hoverArea, mouse.x, mouse.y)) list.currentIndex = item.index; }
-                onClicked: {
+                onClicked: mouse => {
+                    if (mouse.button === Qt.RightButton) {
+                        list.currentIndex = item.index;
+                        if (root.menuFor === item.index)
+                            root.menuFor = -1;
+                        else
+                            root.openMenu(item.index);
+                        return;
+                    }
+                    root.menuFor = -1;
                     Apps.launch(item.modelData);
                     Panels.close();
+                }
+            }
+        }
+    }
+
+    // Right-click menu for an app
+    Item {
+        id: menuLayer
+
+        Layout.preferredHeight: 0
+        Layout.fillWidth: true
+        z: 10
+
+        Rectangle {
+            id: appMenu
+
+            readonly property var entry: root.menuFor >= 0 ? list.itemAtIndex(root.menuFor)?.modelData ?? null : null
+
+            visible: entry !== null
+            x: parent.width - width - Appearance.padding.normal
+            y: root.menuY
+            width: 250
+            height: menuCol.implicitHeight + 8
+            radius: Appearance.rounding.small + 2
+            color: Colors.surfaceContainerHighest
+            border.width: 1
+            border.color: Colors.outlineVariant
+
+            ColumnLayout {
+                id: menuCol
+
+                anchors.fill: parent
+                anchors.margins: 4
+                spacing: 0
+
+                Repeater {
+                    model: appMenu.entry ? [
+                        { icon: "open_in_new", text: "Open", act: () => { Apps.launch(appMenu.entry); Panels.close(); } },
+                        { icon: "memory", text: "Open on NVIDIA GPU", act: () => { Apps.launch(appMenu.entry, true); Panels.close(); } },
+                        { icon: Apps.alwaysGpu(appMenu.entry) ? "check_box" : "check_box_outline_blank", text: "Always use NVIDIA GPU", act: () => Apps.toggleAlwaysGpu(appMenu.entry) }
+                    ] : []
+
+                    Rectangle {
+                        required property var modelData
+
+                        Layout.fillWidth: true
+                        implicitHeight: 34
+                        radius: Appearance.rounding.small
+                        color: "transparent"
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Appearance.padding.normal
+                            spacing: Appearance.spacing.normal
+
+                            MaterialIcon {
+                                icon: parent.parent.modelData.icon
+                                size: 18
+                                color: Colors.primary
+                            }
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: parent.parent.modelData.text
+                            }
+                        }
+
+                        StateLayer {
+                            onClicked: parent.modelData.act()
+                        }
+                    }
                 }
             }
         }

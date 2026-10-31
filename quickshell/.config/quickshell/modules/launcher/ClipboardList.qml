@@ -11,7 +11,7 @@ ColumnLayout {
     required property string query
     readonly property var entries: Clipboard.entries.filter(e => e.text.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 100)
 
-    function activate(): void {
+    function activate(gpu): void {
         if (list.currentIndex >= 0 && list.currentIndex < entries.length) {
             Clipboard.copy(entries[list.currentIndex]);
             Panels.close();

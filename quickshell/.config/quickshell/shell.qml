@@ -7,6 +7,7 @@ import Quickshell.Io
 import qs.modules.bar
 import qs.modules.dashboard
 import qs.modules.launcher
+import qs.modules.keybinds
 import qs.modules.lock
 import qs.modules.notifications
 import qs.modules.osd
@@ -28,6 +29,7 @@ ShellRoot {
     Session {}
     Lock {}
     UpdatesMenu {}
+    Keybinds {}
 
     // `qs ipc call rice <function> [args]` — used by Hyprland keybinds.
     IpcHandler {

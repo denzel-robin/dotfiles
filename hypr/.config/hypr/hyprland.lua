@@ -229,6 +229,7 @@ hl.bind(mainMod .. " + code:49", hl.dsp.exec_cmd(shell .. "toggle notifications"
 hl.bind(mainMod .. " + SHIFT + code:49", hl.dsp.exec_cmd(shell .. "dnd"))
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(shell .. "lock"))
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd(shell .. "toggle session"))
+hl.bind(mainMod .. " + slash", hl.dsp.exec_cmd(shell .. "toggle keybinds"))   -- cheat sheet
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd(shell .. "launcher clipboard"))   -- Shift+Del inside removes an entry
 hl.bind("PRINT", hl.dsp.exec_cmd("flameshot gui"))
 hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("grim -g \"$(slurp)\" - | wl-copy"))
