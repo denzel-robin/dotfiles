@@ -7,6 +7,7 @@ red = "#e05561"
 green = "#8cc265"
 yellow = "#d8b45c"
 cyan = "#4fb8c4"
+violet = "#9a6bff"
 
 [templates.quickshell]
 input_path = "~/.config/matugen/templates/quickshell-colors.json"
@@ -67,3 +68,11 @@ output_path = "~/.config/nvim/colors/rice.lua"
 [templates.pywalfox]
 input_path = "~/.config/matugen/templates/pywal-colors.json"
 output_path = "~/.cache/wal/colors.json"
+
+[templates.lazygit]
+input_path = "~/.config/matugen/templates/lazygit.yml"
+output_path = "~/.config/lazygit/config.yml"
+
+[templates.zen]
+input_path = "~/.config/matugen/templates/zen-palette.json"
+output_path = "~/.cache/rice/zen-palette.json"

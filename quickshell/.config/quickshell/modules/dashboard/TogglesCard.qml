@@ -18,7 +18,10 @@ Tile {
                 { label: "WARP", sub: Toggles.warpBusy ? "Connecting…" : Toggles.warp ? "Connected" : "Off", icon: Toggles.warp ? "vpn_lock" : "vpn_key_off", on: Toggles.warp, enabled: true, act: () => Toggles.toggleWarp() },
                 { label: "Mute", sub: Audio.muted ? "Muted" : `${Math.round(Audio.volume * 100)}%`, icon: Audio.muted ? "volume_off" : "volume_up", on: Audio.muted, enabled: Audio.sink !== null, act: () => Audio.toggleMute() },
                 { label: "Power", sub: Toggles.profileName, icon: Toggles.profileIcon, on: Toggles.profileName !== "Balanced", enabled: true, act: () => Toggles.cycleProfile() },
-                { label: "Night light", sub: Toggles.nightLight ? "On" : "Off", icon: "nightlight", on: Toggles.nightLight, enabled: true, act: () => Toggles.nightLight = !Toggles.nightLight }
+                { label: "Night light", sub: Toggles.nightLight ? "On" : "Off", icon: "nightlight", on: Toggles.nightLight, enabled: true, act: () => Toggles.nightLight = !Toggles.nightLight },
+                { wide: true, label: "Charge limit", icon: Toggles.chargeLimit ? "battery_saver" : "battery_full",
+                  sub: !Toggles.chargeLimitSupported ? "Not supported" : !Toggles.chargeLimitWritable ? "Needs setup · run ~/dotfiles/system/install.sh" : Toggles.chargeLimit ? `Stops charging at ${Toggles.chargeLimitNow}% · kinder to the battery` : "Off · charges to 100%",
+                  on: Toggles.chargeLimit, enabled: Toggles.chargeLimitSupported && Toggles.chargeLimitWritable, act: () => Toggles.toggleChargeLimit() }
             ]
 
             Rectangle {
@@ -26,22 +29,37 @@ Tile {
 
                 required property var modelData
 
+                readonly property bool wide: modelData.wide === true
+
                 Layout.fillWidth: true
-                implicitHeight: 70
+                Layout.columnSpan: wide ? 3 : 1
+                implicitHeight: wide ? 52 : 70
                 radius: Appearance.rounding.normal - 4
                 color: modelData.on ? Colors.primaryContainer : Colors.surfaceContainerHighest
                 opacity: modelData.enabled ? 1 : 0.45
 
                 Behavior on color { CAnim { duration: Appearance.anim.fast } }
 
-                ColumnLayout {
+                RowLayout {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.margins: Appearance.padding.normal
+                    spacing: Appearance.spacing.normal
+
+                MaterialIcon {
+                    visible: toggle.wide
+                    icon: toggle.modelData.icon
+                    fill: toggle.modelData.on ? 1 : 0
+                    color: toggle.modelData.on ? Colors.textOnPrimaryContainer : Colors.textOnSurface
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
                     spacing: 1
 
                     MaterialIcon {
+                        visible: !toggle.wide
                         icon: toggle.modelData.icon
                         fill: toggle.modelData.on ? 1 : 0
                         color: toggle.modelData.on ? Colors.textOnPrimaryContainer : Colors.textOnSurface
@@ -62,6 +80,7 @@ Tile {
                         color: toggle.modelData.on ? Colors.alpha(Colors.textOnPrimaryContainer, 0.75) : Colors.textOnSurfaceVariant
                         elide: Text.ElideRight
                     }
+                }
                 }
 
                 // Has a details page: right-click (or the ▸) opens it

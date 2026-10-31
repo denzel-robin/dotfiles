@@ -1,0 +1,4 @@
+# Let the wheel group set the battery charge limit (the rice dashboard's "Charge limit" tile).
+ACTION=="add", SUBSYSTEM=="power_supply", KERNEL=="BAT[0-9]*", TEST=="charge_control_end_threshold", \
+  RUN+="/usr/bin/chgrp wheel /sys%p/charge_control_end_threshold", \
+  RUN+="/usr/bin/chmod g+w /sys%p/charge_control_end_threshold"

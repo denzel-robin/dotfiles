@@ -71,4 +71,56 @@ Singleton {
         running: root.nightLight
         command: ["hyprsunset", "-t", "4200"]
     }
+
+    // ── Battery charge limit (stop charging at 95 %, kinder to the battery) ──
+    // The kernel resets the limit to 100 on boot (and the firmware sometimes on resume),
+    // so the saved choice is re-applied at start and checked every minute.
+    // Writing it needs the udev rule from ~/dotfiles/system/ (makes it writable by wheel).
+    readonly property int chargeLimitValue: 95
+    property bool chargeLimit: false
+    property int chargeLimitNow: 100     // what the battery is set to right now
+    property bool chargeLimitWritable: false
+    property bool chargeLimitSupported: false
+
+    function toggleChargeLimit(): void {
+        chargeLimit = !chargeLimit;
+        chargeLimitFile.setText(chargeLimit ? "on\n" : "off\n");
+        applyChargeLimit();
+    }
+    function applyChargeLimit(): void {
+        chargeProc.command = ["sh", "-c", `
+            f=$(ls /sys/class/power_supply/BAT*/charge_control_end_threshold 2>/dev/null | head -1)
+            [ -n "$f" ] || { echo none; exit; }
+            [ -w "$f" ] && [ "$(cat "$f")" != "$1" ] && echo "$1" > "$f"
+            [ -w "$f" ] && echo "w $(cat "$f")" || echo "r $(cat "$f")"
+        `, "_", String(chargeLimit ? chargeLimitValue : 100)];
+        chargeProc.running = true;
+    }
+    Process {
+        id: chargeProc
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const [mode, value] = text.trim().split(" ");
+                root.chargeLimitSupported = mode !== "none";
+                root.chargeLimitWritable = mode === "w";
+                root.chargeLimitNow = parseInt(value) || 100;
+            }
+        }
+    }
+    FileView {
+        id: chargeLimitFile
+        path: `${Quickshell.env("HOME")}/.local/state/rice/charge-limit`
+        printErrors: false
+        onLoaded: {
+            root.chargeLimit = text().trim() === "on";
+            root.applyChargeLimit();
+        }
+        onLoadFailed: root.applyChargeLimit()
+    }
+    Timer {
+        interval: 60 * 1000
+        running: true
+        repeat: true
+        onTriggered: root.applyChargeLimit()
+    }
 }

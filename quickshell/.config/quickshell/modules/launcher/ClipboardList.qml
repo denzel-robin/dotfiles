@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Widgets
 import qs.config
 import qs.services
 import qs.widgets
@@ -38,7 +39,7 @@ ColumnLayout {
         id: list
 
         Layout.fillWidth: true
-        implicitHeight: Math.min(count, 8) * 48
+        implicitHeight: Math.min(contentHeight, 8 * 48)
         clip: true
         currentIndex: 0
         highlightMoveDuration: Appearance.anim.fast
@@ -56,8 +57,10 @@ ColumnLayout {
             required property var modelData
             required property int index
 
+            readonly property bool hasThumb: modelData.thumb !== ""
+
             width: list.width
-            height: 48
+            height: hasThumb ? 112 : 48
 
             RowLayout {
                 anchors.fill: parent
@@ -66,14 +69,35 @@ ColumnLayout {
                 spacing: Appearance.spacing.large
 
                 MaterialIcon {
+                    visible: !row.hasThumb
                     icon: row.modelData.isImage ? "image" : "notes"
                     size: 20
                     color: Colors.textOnSurfaceVariant
                 }
 
+                // Image preview, rounded
+                ClippingRectangle {
+                    visible: row.hasThumb
+                    Layout.preferredWidth: Math.min(180, 96 * (thumb.implicitWidth / Math.max(1, thumb.implicitHeight)))
+                    Layout.preferredHeight: 96
+                    radius: Appearance.rounding.small
+                    color: Colors.alpha(Colors.textOnSurface, 0.06)
+
+                    Image {
+                        id: thumb
+                        anchors.fill: parent
+                        source: row.modelData.thumb
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        cache: false
+                        sourceSize.height: 192
+                    }
+                }
+
                 StyledText {
                     Layout.fillWidth: true
                     text: row.modelData.text.replace(/\s+/g, " ")
+                    color: row.hasThumb ? Colors.textOnSurfaceVariant : Colors.textOnSurface
                     elide: Text.ElideRight
                     maximumLineCount: 1
                 }

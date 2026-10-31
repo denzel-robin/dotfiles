@@ -3,6 +3,7 @@
 -- your real session (start-hyprland).
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "1" })
 
+hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
 hl.env("XCURSOR_SIZE", "24")
 
 hl.config({
