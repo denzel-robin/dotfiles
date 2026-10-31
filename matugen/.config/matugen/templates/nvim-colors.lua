@@ -40,7 +40,11 @@ for _, name in ipairs({
   cur.ctermbg = nil
   hl(name, cur)
 end
-hl("CursorLine", { bg = p.container })
+-- No tinted bar on the cursor's line; its line number is highlighted instead
+hl("CursorLine", {})
+hl("CursorLineSign", {})
+hl("CursorLineFold", {})
+hl("CursorLineNr", { fg = p.primary, bold = true })
 hl("WinSeparator", { fg = p.container_high })
 -- ...but keep popups slightly tinted so text stays readable over any wallpaper
 hl("NormalFloat", { fg = p.text, bg = p.container })
