@@ -44,7 +44,6 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("qs -n -d")          -- bar, launcher, notifications, dashboard, lock
     hl.exec_cmd("hypridle")
     hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("xrdb -merge ~/.Xresources")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-clip-persist --clipboard regular --all-mime-type-regex '^(?!x-kde-passwordManagerHint).+'")
@@ -58,6 +57,7 @@ hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("WLR_DRM_NO_ATOMIC", "1")
 hl.env("CLIPHIST_MAX_ITEM", "100")
+hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")   -- Qt apps: wallpaper colours + Papirus (qt6ct)
 
 -----------------------
 ---- LOOK AND FEEL ----

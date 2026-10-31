@@ -1,6 +1,13 @@
 # Material You colors generated from the wallpaper. Run through `rice-wall`.
 [config]
 
+# Standard terminal hues, tinted toward the wallpaper so they fit (red stays red…)
+[config.custom_colors]
+red = "#e05561"
+green = "#8cc265"
+yellow = "#d8b45c"
+cyan = "#4fb8c4"
+
 [templates.quickshell]
 input_path = "~/.config/matugen/templates/quickshell-colors.json"
 output_path = "~/.local/state/rice/colors.json"
@@ -16,3 +23,47 @@ output_path = "~/.local/share/icons/hicolor/scalable/apps/rice-terminal.svg"
 [templates.yazi]
 input_path = "~/.config/matugen/templates/yazi-theme.toml"
 output_path = "~/.config/yazi/theme.toml"
+
+[templates.kitty]
+input_path = "~/.config/matugen/templates/kitty-colors.conf"
+output_path = "~/.config/kitty/colors.conf"
+
+[templates.hyprlock]
+input_path = "~/.config/matugen/templates/hyprlock-colors.conf"
+output_path = "~/.local/state/rice/hyprlock-colors.conf"
+
+[templates.btop]
+input_path = "~/.config/matugen/templates/btop.theme"
+output_path = "~/.config/btop/themes/rice.theme"
+
+[templates.starship]
+input_path = "~/.config/matugen/templates/starship.toml"
+output_path = "~/.config/starship.toml"
+
+[templates.gtk3]
+input_path = "~/.config/matugen/templates/gtk.css"
+output_path = "~/.config/gtk-3.0/gtk.css"
+
+[templates.gtk4]
+input_path = "~/.config/matugen/templates/gtk.css"
+output_path = "~/.config/gtk-4.0/gtk.css"
+
+[templates.qt6ct]
+input_path = "~/.config/matugen/templates/qtct-colors.conf"
+output_path = "~/.config/qt6ct/colors/rice.conf"
+
+[templates.qt5ct]
+input_path = "~/.config/matugen/templates/qtct-colors.conf"
+output_path = "~/.config/qt5ct/colors/rice.conf"
+
+[templates.vesktop]
+input_path = "~/.config/matugen/templates/vesktop.theme.css"
+output_path = "~/.config/vesktop/themes/rice.theme.css"
+
+[templates.nvim]
+input_path = "~/.config/matugen/templates/nvim-colors.lua"
+output_path = "~/.config/nvim/colors/rice.lua"
+
+[templates.pywalfox]
+input_path = "~/.config/matugen/templates/pywal-colors.json"
+output_path = "~/.cache/wal/colors.json"

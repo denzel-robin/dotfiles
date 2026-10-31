@@ -2,3 +2,4 @@
 *.bak
 __pycache__/
 .sentry-native/
+fish_variables

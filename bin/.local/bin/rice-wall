@@ -24,4 +24,12 @@ echo "$img" > "$state/wallpaper"
 echo "$mode" > "$state/mode"
 
 hyprctl reload >/dev/null   # pick up the new border colours
+
+# Refresh running apps with the new colours
+pkill -USR1 -x kitty 2>/dev/null || true                       # kitty re-reads colors.conf
+command -v pywalfox >/dev/null && pywalfox update >/dev/null 2>&1 || true   # Zen (Pywalfox add-on)
+if [[ "$mode" == light ]]; then gtk=adw-gtk3; scheme=prefer-light; else gtk=adw-gtk3-dark; scheme=prefer-dark; fi
+gsettings set org.gnome.desktop.interface color-scheme "$scheme"
+gsettings set org.gnome.desktop.interface gtk-theme ""          # GTK3 apps reload gtk.css on a theme change
+gsettings set org.gnome.desktop.interface gtk-theme "$gtk"
 wait
