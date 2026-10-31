@@ -20,6 +20,20 @@ ColumnLayout {
     property int menuFor: -1   // index of the app whose right-click menu is open
     property real menuY: 0
 
+    // Close the right-click menu; true if it was open (so Esc closes the menu first)
+    function closeMenu(): bool {
+        const wasOpen = menuFor >= 0;
+        menuFor = -1;
+        return wasOpen;
+    }
+
+    // Never carry an open menu over to the next time the launcher opens
+    Connections {
+        target: Panels
+        function onCurrentChanged() { root.menuFor = -1; }
+        function onLauncherModeChanged() { root.menuFor = -1; }
+    }
+
     // Open the right-click menu under (or, near the bottom, above) the app's row
     function openMenu(index: int): void {
         const row = list.itemAtIndex(index);
@@ -264,6 +278,16 @@ ColumnLayout {
         Layout.preferredHeight: 0
         Layout.fillWidth: true
         z: 10
+
+        // While the menu is open, a click anywhere else in the list closes it
+        MouseArea {
+            visible: root.menuFor >= 0
+            y: -menuLayer.y
+            width: root.width
+            height: root.height
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            onClicked: root.menuFor = -1
+        }
 
         Rectangle {
             id: appMenu

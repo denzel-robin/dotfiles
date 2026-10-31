@@ -171,7 +171,8 @@ Overlay {
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                             root.view.activate((event.modifiers & Qt.ControlModifier) !== 0);   // Ctrl+Enter: on the NVIDIA GPU
                         } else if (event.key === Qt.Key_Escape) {
-                            Panels.close();
+                            if (!(root.view.closeMenu?.() ?? false))   // Esc closes an open menu first
+                                Panels.close();
                         } else if (root.view.handleKey(event)) {
                             // handled by the view (arrows, delete…)
                         } else {
