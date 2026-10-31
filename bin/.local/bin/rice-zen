@@ -21,15 +21,24 @@ from pathlib import Path
 ZEN = Path.home() / ".zen"
 PALETTE = Path.home() / ".cache/rice/zen-palette.json"
 
-# profile name -> (preferred accents in order, background style)
-#   background: "rice" = the wallpaper surface, "abyss" = deeper and darker
-PROFILES = {
-    "Denzel": (["primary"], "rice"),
-    "Gaming": (["violet", "tertiary", "red"], "abyss"),
-    "Work": (["green", "cyan", "secondary"], "rice"),
-    "Default User": (["cyan", "yellow", "secondary"], "rice"),
-    "ibexe": (["yellow", "red", "secondary"], "rice"),
-}
+# Per-profile choices live outside the repo, in ~/.config/rice/zen-profiles.json:
+#   { "Work": { "accents": ["green", "cyan"], "background": "rice" },
+#     "Gaming": { "accents": ["violet", "tertiary"], "background": "abyss" } }
+# accents: preferred, in order (primary secondary tertiary green cyan yellow red violet)
+# background: "rice" = the wallpaper surface, "abyss" = deeper and darker
+# Profiles are assigned in the file's order; unlisted ones get a free accent.
+PROFILES_FILE = Path.home() / ".config/rice/zen-profiles.json"
+
+
+def load_profiles() -> dict:
+    try:
+        raw = json.loads(PROFILES_FILE.read_text())
+    except (OSError, ValueError):
+        return {}
+    return {name: (list(v.get("accents", [])), v.get("background", "rice")) for name, v in raw.items()}
+
+
+PROFILES = load_profiles()
 FALLBACK = ["tertiary", "green", "cyan", "yellow", "red", "violet", "secondary"]
 MIN_HUE_GAP = 25  # degrees
 

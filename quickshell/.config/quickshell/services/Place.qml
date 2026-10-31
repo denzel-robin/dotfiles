@@ -4,21 +4,25 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Where you are, for the weather: College (CollegeTown) or Home (HomeTown).
+// Where you are, for the weather: College or Home.
 // "auto" recognises the network you're on (Wi-Fi name, or the router for wired) —
 // unaffected by WARP, unlike IP geolocation. Choosing a place manually also teaches
-// it the current network. Saved in ~/.local/state/rice/place.json.
+// it the current network. Saved in ~/.local/state/rice/place.json, which also holds
+// the real place names (kept out of the dotfiles repo):
+//   "places": { "college": { "name": "Town", "query": "~Town" }, "home": { ... } }
 Singleton {
     id: root
 
+    // Names/queries come from place.json; an empty query lets wttr.in guess from your IP
+    property var placeNames: ({ college: { name: "College", query: "" }, home: { name: "Home", query: "" } })
     readonly property var places: ({
-        college: { label: "College", name: "CollegeTown", query: "~CollegeTown", icon: "school" },
-        home: { label: "Home", name: "HomeTown", query: "~HomeTown", icon: "home" }
+        college: { label: "College", name: placeNames.college?.name ?? "College", query: placeNames.college?.query ?? "", icon: "school" },
+        home: { label: "Home", name: placeNames.home?.name ?? "Home", query: placeNames.home?.query ?? "", icon: "home" }
     })
 
     property string mode: "auto"          // "auto" | "college" | "home"
     property string last: "college"       // used when the network is unknown
-    property var networks: ({ college: ["wifi:CollegeWiFi", "wifi:CollegeWiFi 2"], home: [] })
+    property var networks: ({ college: [], home: [] })
     property string networkId: ""         // "wifi:<ssid>" or "wired:<router mac>"
 
     readonly property string autoPlace: {
@@ -46,7 +50,7 @@ Singleton {
     }
 
     function save(): void {
-        file.setText(JSON.stringify({ mode, last, networks }, null, 2));
+        file.setText(JSON.stringify({ mode, last, places: placeNames, networks }, null, 2));
     }
 
     FileView {
@@ -59,6 +63,8 @@ Singleton {
                 root.mode = d.mode ?? "auto";
                 root.last = d.last ?? "college";
                 root.networks = Object.assign({ college: [], home: [] }, d.networks ?? {});
+                if (d.places)
+                    root.placeNames = Object.assign({}, root.placeNames, d.places);
             } catch (e) {}
         }
     }
