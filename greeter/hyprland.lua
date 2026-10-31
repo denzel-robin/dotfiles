@@ -1,5 +1,5 @@
 -- Minimal Hyprland session that only runs the login screen (greetd starts this as the
--- "greeter" user). When you log in, the greeter quits, this exits, and greetd starts
+-- "greeter" user via start-hyprland). When you log in, the greeter quits, this exits, and greetd starts
 -- your real session (start-hyprland).
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "1" })
 
