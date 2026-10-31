@@ -3,3 +3,4 @@
 __pycache__/
 .sentry-native/
 fish_variables
+nvim/.config/nvim/colors/rice.lua

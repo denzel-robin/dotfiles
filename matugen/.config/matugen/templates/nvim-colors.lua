@@ -13,3 +13,38 @@ require("mini.base16").setup({
   },
 })
 vim.g.colors_name = "rice"
+
+-- Palette for the statusline / start screen (lua/plugins/rice.lua)
+vim.g.rice_palette = {
+  surface = "{{colors.surface.default.hex}}", container = "{{colors.surface_container.default.hex}}", container_high = "{{colors.surface_container_high.default.hex}}",
+  text = "{{colors.on_surface.default.hex}}", subtle = "{{colors.on_surface_variant.default.hex}}", outline = "{{colors.outline.default.hex}}",
+  primary = "{{colors.primary.default.hex}}", secondary = "{{colors.secondary.default.hex}}", tertiary = "{{colors.tertiary.default.hex}}",
+  red = "{{colors.red.default.hex}}", green = "{{colors.green.default.hex}}", yellow = "{{colors.yellow.default.hex}}", cyan = "{{colors.cyan.default.hex}}",
+}
+local p = vim.g.rice_palette
+local hl = function(name, val) vim.api.nvim_set_hl(0, name, val) end
+
+-- Palette dots on the start screen, like the terminal greeting
+for name, col in pairs({ RiceRed = p.red, RiceGreen = p.green, RiceYellow = p.yellow, RiceBlue = p.primary, RiceMagenta = p.tertiary, RiceCyan = p.cyan }) do
+  hl(name, { fg = col })
+end
+
+-- Glass: let kitty's blurred background show through the editor areas...
+for _, name in ipairs({
+  "Normal", "NormalNC", "SignColumn", "EndOfBuffer", "LineNr", "LineNrAbove", "LineNrBelow", "CursorLineNr", "FoldColumn",
+  "StatusLine", "StatusLineNC", "TabLine", "TabLineFill", "WinBar", "WinBarNC", "MsgArea",
+  "NeoTreeNormal", "NeoTreeNormalNC", "NeoTreeEndOfBuffer", "SnacksDashboardNormal",
+}) do
+  local cur = vim.api.nvim_get_hl(0, { name = name })
+  cur.bg = nil
+  cur.ctermbg = nil
+  hl(name, cur)
+end
+hl("CursorLine", { bg = p.container })
+hl("WinSeparator", { fg = p.container_high })
+-- ...but keep popups slightly tinted so text stays readable over any wallpaper
+hl("NormalFloat", { fg = p.text, bg = p.container })
+hl("FloatBorder", { fg = p.outline, bg = p.container })
+hl("FloatTitle", { fg = p.primary, bg = p.container, bold = true })
+hl("Pmenu", { fg = p.text, bg = p.container })
+hl("PmenuSel", { fg = p.surface, bg = p.primary, bold = true })
