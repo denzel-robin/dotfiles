@@ -8,8 +8,6 @@ the moment you change the wallpaper.
 
 <img src=".github/media/demo.gif" alt="Changing the wallpaper recolours the whole desktop" width="100%">
 
-[▶ Full demo video (30 s)](.github/media/demo.mp4)
-
 </div>
 
 ---
@@ -31,7 +29,7 @@ apps open on each one, the clock, then tray, updates, notifications, status and 
 <img src=".github/media/terminal.jpg" alt="kitty with fish, Yazi and Neovim" width="100%">
 
 **Terminal** — kitty (glassy, Maple Mono), fish + starship, Yazi with a key-hint bar, and LazyVim
-with a slim file-tree rail and Claude Code built in.
+with a slim file-tree rail.
 
 ## Features
 
@@ -64,7 +62,7 @@ Each folder is a [GNU Stow](https://www.gnu.org/software/stow/) package that mir
 | `matugen` | Colour templates for every app |
 | `bin` | `rice-wall` (set wallpaper + recolour), `rice-zen`, `rice-trash`, `rice-defaults` |
 | `kitty` `fish` `atuin` `bash` | Terminal, shell, history, login environment |
-| `nvim` | LazyVim with the file-tree rail and Claude Code |
+| `nvim` | LazyVim with the file-tree rail |
 | `yazi` `btop` `fastfetch` `flameshot` `gtk` `apps` `systemd` | App configs, desktop entries, trash timer |
 | `greeter` | Login screen (installed with `sudo greeter/install.sh`, not stowed) |
 | `system` | Root bits: battery charge-limit permission (`sudo system/install.sh`) |
@@ -112,7 +110,4 @@ and `~/.config/rice/zen-profiles.json` (accent per Zen profile).
 
 ## Credits
 
-Inspired by [Caelestia](https://github.com/caelestia-dots/shell) (written from scratch, not a fork).
-Vesktop theme based on [Midnight](https://github.com/refact0r/midnight-discord) by refact0r.
-Built with [Quickshell](https://quickshell.org), [matugen](https://github.com/InioX/matugen) and
-[Hyprland](https://hyprland.org).
+Inspired by [Caelestia](https://github.com/caelestia-dots/shell).
