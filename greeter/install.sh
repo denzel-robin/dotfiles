@@ -23,6 +23,7 @@ install -d -o greeter -g greeter -m 750 /var/cache/rice-greeter /var/cache/rice-
 
 echo "→ wallpaper sync"
 install -m 755 "$here/rice-greeter-sync" /usr/local/bin/rice-greeter-sync
+install -m 755 "$here/rice-session" /usr/local/bin/rice-session
 for u in rice-greeter-sync.path rice-greeter-sync.service; do
     sed "s|@HOME@|$home|g; s|@USER@|$user|g" "$here/$u" > "/etc/systemd/system/$u"
 done

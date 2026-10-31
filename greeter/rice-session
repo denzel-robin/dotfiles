@@ -1,0 +1,11 @@
+#!/bin/sh
+# Your desktop session, started by the login screen (greetd runs it as you).
+# Blank the text console so nothing shows between the login screen and the desktop,
+# and keep the startup output in a log file instead of on the screen.
+#
+# (A script rather than an inline "sh -c …": greetd joins a session command's pieces
+# with spaces and runs them through its own shell, which mangles quoting.)
+export TERM=linux
+clear
+setterm --cursor off
+exec start-hyprland >"${XDG_RUNTIME_DIR:-/tmp}/rice-session.log" 2>&1

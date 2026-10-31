@@ -23,9 +23,9 @@ ShellRoot {
 
     readonly property string dataDir: Quickshell.env("RICE_GREETER_DATA") || "/var/lib/rice-greeter"
     readonly property bool preview: !Greetd.available
-    // Your desktop. The text console is blanked first and its output goes to
-    // $XDG_RUNTIME_DIR/rice-session.log (not the screen), so nothing flashes in between.
-    readonly property list<string> session: ["sh", "-c", "clear; setterm --cursor off; exec start-hyprland >\"${XDG_RUNTIME_DIR:-/tmp}/rice-session.log\" 2>&1"]
+    // Your desktop: /usr/local/bin/rice-session (installed with the greeter) blanks the
+    // text console and starts start-hyprland, logging to $XDG_RUNTIME_DIR/rice-session.log.
+    readonly property list<string> session: ["/usr/local/bin/rice-session"]
     property bool leaving: false   // fading out after a successful login
 
     // ── State ──
