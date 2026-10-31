@@ -18,6 +18,9 @@ install -m 644 "$here/hyprland.lua" /etc/greetd/hyprland.lua
 [ -f /etc/greetd/config.toml ] && [ ! -f /etc/greetd/config.toml.orig ] && cp /etc/greetd/config.toml /etc/greetd/config.toml.orig
 install -m 644 "$here/config.toml" /etc/greetd/config.toml
 
+# The greeter user's home is "/" (not writable): give it its own cache
+install -d -o greeter -g greeter -m 750 /var/cache/rice-greeter /var/cache/rice-greeter/state
+
 echo "→ wallpaper sync"
 install -m 755 "$here/rice-greeter-sync" /usr/local/bin/rice-greeter-sync
 for u in rice-greeter-sync.path rice-greeter-sync.service; do
@@ -28,7 +31,8 @@ systemctl enable --now rice-greeter-sync.path
 RICE_USER=$user /usr/local/bin/rice-greeter-sync
 
 echo "→ checking the greeter's Hyprland config"
-Hyprland --verify-config --config /etc/greetd/hyprland.lua
+# (Hyprland won't run as root without a runtime dir, so check it as you)
+sudo -u "$user" XDG_RUNTIME_DIR="/run/user/$(id -u "$user")" Hyprland --verify-config --config /etc/greetd/hyprland.lua | tail -1
 
 echo "→ login screen on at boot"
 systemctl enable greetd
