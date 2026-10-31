@@ -1,7 +1,5 @@
 <div align="center">
 
-# rice
-
 **A soft, rounded Hyprland desktop whose colours come from the wallpaper.**
 Floating islands on the left, a shell written from scratch in Quickshell, and every app recoloured
 the moment you change the wallpaper.
