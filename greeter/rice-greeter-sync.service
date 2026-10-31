@@ -1,0 +1,7 @@
+[Unit]
+Description=Copy the rice's wallpaper and colours for the login screen
+
+[Service]
+Type=oneshot
+Environment=RICE_USER=@USER@
+ExecStart=/usr/local/bin/rice-greeter-sync

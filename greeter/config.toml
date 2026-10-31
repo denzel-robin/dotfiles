@@ -1,0 +1,7 @@
+# greetd: shows the rice login screen on tty1.
+[terminal]
+vt = 1
+
+[default_session]
+command = "Hyprland --config /etc/greetd/hyprland.lua"
+user = "greeter"

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Copy the rice's current look (blurred wallpaper, colours, avatar) and the user list
+# to /var/lib/rice-greeter, where the login screen — which can't read /home — finds it.
+# Run by rice-greeter-sync.path whenever rice-wall changes them.
+set -eu
+user="${RICE_USER:-ibexe}"
+home=$(getent passwd "$user" | cut -d: -f6)
+dest=/var/lib/rice-greeter
+
+install -d -m 755 "$dest"
+[ -f "$home/.cache/rice/lock.jpg" ] && install -m 644 "$home/.cache/rice/lock.jpg" "$dest/wallpaper.jpg"
+[ -f "$home/.local/state/rice/colors.json" ] && install -m 644 "$home/.local/state/rice/colors.json" "$dest/colors.json"
+[ -f "$home/.face" ] && install -m 644 "$home/.face" "$dest/avatar.png"
+
+# Login-capable human users ("name:Full Name"), the rice's user first
+getent passwd | awk -F: -v u="$user" '
+    $3 >= 1000 && $3 < 60000 && $7 !~ /(nologin|false)$/ {
+        split($5, g, ","); line = $1 ":" g[1]
+        if ($1 == u) first = line; else rest = rest line "\n"
+    }
+    END { printf "%s\n%s", first, rest }' > "$dest/users"
+chmod 644 "$dest/users"

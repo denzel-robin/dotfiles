@@ -1,0 +1,10 @@
+[Unit]
+Description=Update the login screen when the rice's wallpaper changes
+
+[Path]
+PathChanged=@HOME@/.local/state/rice/colors.json
+PathChanged=@HOME@/.cache/rice/lock.jpg
+PathChanged=@HOME@/.face
+
+[Install]
+WantedBy=paths.target
