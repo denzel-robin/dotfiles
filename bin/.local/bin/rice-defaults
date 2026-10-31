@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Set which app opens each kind of file system-wide (xdg-open, browsers' "open file",
+# file managers…). Safe to re-run any time an app grabs a file type.
+set -euo pipefail
+
+set_default() {   # set_default <app.desktop> <mime>...
+    local app=$1; shift
+    xdg-mime default "$app" "$@"
+}
+
+# Text, logs, code, config -> Neovim in kitty
+set_default nvim-kitty.desktop \
+    text/plain text/x-log text/markdown text/x-readme text/csv text/x-python text/x-python3 \
+    text/x-shellscript application/x-shellscript text/x-csrc text/x-chdr text/x-c++src text/x-c++hdr \
+    text/x-java text/x-rust text/x-go text/x-lua text/css text/xml application/xml \
+    application/json application/x-yaml application/yaml application/toml text/x-toml \
+    application/x-desktop text/x-tex application/x-wine-extension-ini application/javascript text/javascript
+
+# Images -> imv
+set_default imv.desktop \
+    image/png image/jpeg image/gif image/webp image/bmp image/tiff image/avif image/heif \
+    image/svg+xml image/x-icon image/vnd.microsoft.icon
+
+# Video & audio -> mpv
+set_default mpv.desktop \
+    video/mp4 video/x-matroska video/webm video/quicktime video/x-msvideo video/mpeg video/ogg video/x-flv \
+    audio/mpeg audio/mp3 audio/flac audio/x-flac audio/ogg audio/opus audio/wav audio/x-wav audio/aac audio/mp4 audio/x-m4a
+
+# PDF, web -> Zen
+set_default zen.desktop application/pdf text/html application/xhtml+xml x-scheme-handler/http x-scheme-handler/https
+
+# Archives -> File Roller
+set_default org.gnome.FileRoller.desktop \
+    application/zip application/x-7z-compressed application/x-tar application/x-compressed-tar \
+    application/gzip application/x-gzip application/x-xz application/x-xz-compressed-tar \
+    application/x-bzip2 application/x-bzip2-compressed-tar application/zstd application/x-zstd-compressed-tar \
+    application/vnd.rar application/x-rar application/x-rar-compressed
+
+# Office documents -> LibreOffice
+set_default libreoffice-writer.desktop \
+    application/vnd.openxmlformats-officedocument.wordprocessingml.document application/msword \
+    application/vnd.oasis.opendocument.text application/rtf
+set_default libreoffice-calc.desktop \
+    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet application/vnd.ms-excel \
+    application/vnd.oasis.opendocument.spreadsheet
+set_default libreoffice-impress.desktop \
+    application/vnd.openxmlformats-officedocument.presentationml.presentation application/vnd.ms-powerpoint \
+    application/vnd.oasis.opendocument.presentation
+
+# Folders -> Yazi
+set_default yazi.desktop inode/directory
+
+echo "rice-defaults: file associations updated (~/.config/mimeapps.list)"

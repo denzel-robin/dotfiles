@@ -1,0 +1,4 @@
+# Generated or machine-specific — never commit
+*.bak
+__pycache__/
+.sentry-native/

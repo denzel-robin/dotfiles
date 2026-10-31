@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Set the wallpaper and regenerate the color scheme from it.
+# Usage: rice-wall <image> [dark|light]     (no args: re-apply the current wallpaper)
+set -euo pipefail
+
+state="$HOME/.local/state/rice"
+mkdir -p "$state"
+
+img="${1:-$(cat "$state/wallpaper" 2>/dev/null || true)}"
+mode="${2:-$(cat "$state/mode" 2>/dev/null || echo dark)}"
+[[ -f "$img" ]] || { echo "rice-wall: no such image: $img" >&2; exit 1; }
+img="$(realpath "$img")"
+
+awww img "$img" --transition-type grow --transition-pos 0.02,0.5 \
+    --transition-duration 1.2 --transition-fps 144 --transition-bezier .4,0,.2,1
+
+matugen image "$img" -m "$mode" --prefer saturation -q
+
+# Blurred copy for the lock screen (done once here, so locking stays smooth)
+mkdir -p "$HOME/.cache/rice"
+ffmpeg -v error -y -i "$img" -frames:v 1 -vf "scale=1920:-2,gblur=sigma=28" -q:v 3 "$HOME/.cache/rice/lock.jpg" &
+
+echo "$img" > "$state/wallpaper"
+echo "$mode" > "$state/mode"
+
+hyprctl reload >/dev/null   # pick up the new border colours
+wait

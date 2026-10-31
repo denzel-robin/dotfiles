@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Trash helper for the freedesktop trash (~/.local/share/Trash), which Yazi, browsers
+# and file managers all use.
+#
+#   rice-trash stats             "<items> <bytes>" (used by the dashboard)
+#   rice-trash restore FILE...   put trashed files back where they came from
+#   rice-trash delete FILE...    delete trashed files forever
+#   rice-trash empty             delete everything in the trash
+#   rice-trash purge [DAYS]      delete items trashed more than DAYS ago (default 30)
+#
+# FILE is a path inside ~/.local/share/Trash/files (what you see in Yazi).
+set -euo pipefail
+
+TRASH="${XDG_DATA_HOME:-$HOME/.local/share}/Trash"
+FILES="$TRASH/files"
+INFO="$TRASH/info"
+DAYS_DEFAULT=30
+
+# Percent-decode a .trashinfo Path= value
+urldecode() { local s="${1//+/ }"; printf '%b' "${s//%/\\x}"; }
+
+info_for() { echo "$INFO/$(basename "$1").trashinfo"; }
+
+cmd_stats() {
+    local n=0 bytes=0
+    if [[ -d "$FILES" ]]; then
+        n=$(find "$FILES" -mindepth 1 -maxdepth 1 | wc -l)
+        bytes=$(du -sb "$FILES" 2>/dev/null | cut -f1)
+        (( n == 0 )) && bytes=0
+    fi
+    echo "$n $bytes"
+}
+
+cmd_restore() {
+    for f in "$@"; do
+        local info dest
+        info=$(info_for "$f")
+        if [[ ! -e "$f" || ! -f "$info" ]]; then
+            echo "rice-trash: not a trashed item: $f" >&2
+            continue
+        fi
+        dest=$(urldecode "$(sed -n 's/^Path=//p' "$info" | head -1)")
+        [[ "$dest" = /* ]] || dest="$HOME/$dest"
+        # Don't overwrite something that's there now: add " (restored N)"
+        if [[ -e "$dest" ]]; then
+            local base="$dest" i=1
+            while [[ -e "$base (restored $i)" ]]; do ((i++)); done
+            dest="$base (restored $i)"
+        fi
+        mkdir -p "$(dirname "$dest")"
+        mv -- "$f" "$dest"
+        rm -f -- "$info"
+        echo "restored: $dest"
+    done
+}
+
+cmd_delete() {
+    for f in "$@"; do
+        [[ "$(dirname "$(realpath -s "$f")")" == "$(realpath "$FILES")" ]] || { echo "rice-trash: not in the trash: $f" >&2; continue; }
+        rm -rf -- "$f"
+        rm -f -- "$(info_for "$f")"
+    done
+}
+
+cmd_empty() {
+    [[ -d "$FILES" ]] && find "$FILES" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+    [[ -d "$INFO" ]] && find "$INFO" -mindepth 1 -maxdepth 1 -name '*.trashinfo' -delete
+    rm -f "$TRASH/directorysizes"
+}
+
+cmd_purge() {
+    local days="${1:-$DAYS_DEFAULT}" cutoff removed=0
+    cutoff=$(date -d "-$days days" +%s)
+    [[ -d "$INFO" ]] || exit 0
+    for info in "$INFO"/*.trashinfo; do
+        [[ -e "$info" ]] || continue
+        local when ts
+        when=$(sed -n 's/^DeletionDate=//p' "$info" | head -1)
+        ts=$(date -d "$when" +%s 2>/dev/null) || continue
+        if (( ts < cutoff )); then
+            rm -rf -- "$FILES/$(basename "$info" .trashinfo)"
+            rm -f -- "$info"
+            ((removed++)) || true
+        fi
+    done
+    echo "rice-trash: removed $removed item(s) older than $days days"
+}
+
+case "${1:-}" in
+    stats)   cmd_stats ;;
+    restore) shift; cmd_restore "$@" ;;
+    delete)  shift; cmd_delete "$@" ;;
+    empty)   cmd_empty ;;
+    purge)   shift; cmd_purge "$@" ;;
+    *)       sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+esac

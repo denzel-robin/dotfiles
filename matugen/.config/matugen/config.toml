@@ -1,0 +1,18 @@
+# Material You colors generated from the wallpaper. Run through `rice-wall`.
+[config]
+
+[templates.quickshell]
+input_path = "~/.config/matugen/templates/quickshell-colors.json"
+output_path = "~/.local/state/rice/colors.json"
+
+[templates.hyprland]
+input_path = "~/.config/matugen/templates/hypr-colors.lua"
+output_path = "~/.local/state/rice/hypr-colors.lua"
+
+[templates.terminal-icon]
+input_path = "~/.config/matugen/templates/rice-terminal.svg"
+output_path = "~/.local/share/icons/hicolor/scalable/apps/rice-terminal.svg"
+
+[templates.yazi]
+input_path = "~/.config/matugen/templates/yazi-theme.toml"
+output_path = "~/.config/yazi/theme.toml"

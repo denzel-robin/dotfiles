@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Neovim
+Comment=Edit text files in Neovim (opens in kitty)
+Icon=nvim
+Exec=kitty -e nvim %F
+Terminal=false
+NoDisplay=true
+MimeType=text/plain;text/x-log;text/markdown;application/json;

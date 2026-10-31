@@ -1,0 +1,6 @@
+[Unit]
+Description=Delete trash items older than 30 days
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/rice-trash purge 30

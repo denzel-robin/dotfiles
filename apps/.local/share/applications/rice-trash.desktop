@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Trash
+Comment=Browse and restore deleted files (items older than 30 days are removed automatically)
+Icon=user-trash-full
+Exec=kitty --class yazi -e yazi /home/ibexe/.local/share/Trash/files
+Terminal=false
+Categories=System;FileManager;
+Keywords=trash;bin;recycle;deleted;restore;
