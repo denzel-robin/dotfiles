@@ -6,15 +6,13 @@
 Floating islands on the left, a shell written from scratch in Quickshell, and every app recoloured
 the moment you change the wallpaper.
 
-<img src=".github/media/demo.gif" alt="Changing the wallpaper recolours the whole desktop" width="100%">
+<img src=".github/media/desktop.jpg" alt="Desktop with the floating bar islands" width="100%">
 
 </div>
 
 ---
 
 ## The desktop
-
-<img src=".github/media/desktop.jpg" alt="Desktop with the floating bar islands" width="100%">
 
 The bar is a column of floating islands on the left edge: logo/launcher, workspaces that show the
 apps open on each one, the clock, then tray, updates, notifications, status and power at the bottom.
