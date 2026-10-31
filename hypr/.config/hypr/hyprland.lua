@@ -97,6 +97,11 @@ hl.config({
 
         blur = {
             enabled = true,
+            size = 6,
+            passes = 2,
+            vibrancy = 0.2,
+            noise = 0.01,
+            new_optimizations = true,
         },
     },
 
@@ -155,6 +160,14 @@ hl.animation({ leaf = "workspaces",    enabled = true,  speed = 1.94, bezier = "
 hl.animation({ leaf = "workspacesIn",  enabled = true,  speed = 1.21, bezier = "almostLinear", style = "fade" })
 hl.animation({ leaf = "workspacesOut", enabled = true,  speed = 1.94, bezier = "almostLinear", style = "fade" })
 hl.animation({ leaf = "zoomFactor",    enabled = true,  speed = 7,    bezier = "quick" })
+
+-- Terminals: Hyprland's 0.9 window opacity would also fade the text; kitty does
+-- its own background transparency (kitty.conf), so keep these windows at full opacity
+hl.window_rule({
+    name    = "terminal-crisp-text",
+    match   = { class = "^(kitty|yazi|rice-update)$" },
+    opacity = "1.0 override 1.0 override",
+})
 
 -- File manager window: floating and centred
 hl.window_rule({

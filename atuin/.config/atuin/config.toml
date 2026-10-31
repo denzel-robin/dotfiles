@@ -1,0 +1,9 @@
+# atuin: Ctrl+R history search. Local only — nothing is synced anywhere.
+auto_sync = false
+update_check = false
+search_mode = "fuzzy"
+filter_mode = "global"
+style = "compact"
+inline_height = 20
+show_preview = true
+show_help = true
