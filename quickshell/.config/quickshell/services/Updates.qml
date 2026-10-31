@@ -6,7 +6,8 @@ import Quickshell.Io
 
 // Pending package updates (repo via checkupdates, AUR via yay). Checks online 10 s
 // after start and hourly after that (the AUR rate-limits frequent checks); a cheap
-// local watch updates the count within 10 s of any install. Reminds at most once a day.
+// local watch updates the count within 10 s of any install. No notifications:
+// the count just shows on the bar's updates island.
 Singleton {
     id: root
 
@@ -73,7 +74,6 @@ Singleton {
                 root.lastChecked = new Date();
                 root.everChecked = true;
                 root.checking = false;
-                root.maybeRemind();
             }
         }
     }
@@ -86,31 +86,6 @@ Singleton {
         onExited: {
             root.updating = false;
             root.check();
-        }
-    }
-
-    // ── Daily reminder ──
-    FileView {
-        id: remindedFile
-        path: `${Quickshell.env("HOME")}/.local/state/rice/updates-reminded`
-        printErrors: false
-    }
-
-    function maybeRemind(): void {
-        const today = Qt.formatDate(new Date(), "yyyy-MM-dd");
-        if (count === 0 || remindedFile.text().trim() === today)
-            return;
-        remindedFile.setText(today);
-        const extra = restart === "reboot" ? " · includes kernel/driver (reboot after)" : restart === "re-login" ? " · includes Hyprland/shell (log in again after)" : "";
-        reminder.command = ["notify-send", "-a", "Updates", "-i", "system-software-update", "-A", "update=Update now",
-            `${count} update${count === 1 ? "" : "s"} available`, `${count - aurCount} from repos, ${aurCount} from AUR${extra}`];
-        reminder.running = true;
-    }
-
-    Process {
-        id: reminder
-        stdout: StdioCollector {
-            onStreamFinished: if (text.trim() === "update") root.update()
         }
     }
 
