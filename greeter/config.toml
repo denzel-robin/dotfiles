@@ -3,8 +3,10 @@
 vt = 1
 
 [default_session]
-# Blank the text console (no logs, no cursor) so nothing shows between the login screen
-# and the desktop. Through start-hyprland (Hyprland warns otherwise). The greeter user's
-# home is "/", so Hyprland/Quickshell get a writable cache. Logs still go to Hyprland's log file.
-command = "sh -c 'clear; setterm --cursor off; exec env XDG_CACHE_HOME=/var/cache/rice-greeter XDG_STATE_HOME=/var/cache/rice-greeter/state XDG_DATA_HOME=/var/cache/rice-greeter/data start-hyprland -- --config /etc/greetd/hyprland.lua >/dev/null 2>&1'"
+# Hyprland directly (not start-hyprland): greetd must wait until this Hyprland has fully
+# released the screen before starting your desktop, and start-hyprland's watchdog exits
+# too early for that (your desktop then couldn't get the display and the login looped).
+# The text console is blanked so nothing shows between login screen and desktop.
+# The greeter user's home is "/", so Hyprland/Quickshell get a writable cache.
+command = "sh -c 'clear; setterm --cursor off; exec env XDG_CACHE_HOME=/var/cache/rice-greeter XDG_STATE_HOME=/var/cache/rice-greeter/state XDG_DATA_HOME=/var/cache/rice-greeter/data Hyprland --config /etc/greetd/hyprland.lua >/dev/null 2>&1'"
 user = "greeter"

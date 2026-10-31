@@ -1,5 +1,5 @@
 -- Minimal Hyprland session that only runs the login screen (greetd starts this as the
--- "greeter" user via start-hyprland). When you log in, the greeter quits, this exits, and greetd starts
+-- "greeter" user, started directly — see config.toml). When you log in, the greeter quits, this exits, and greetd starts
 -- your real session (start-hyprland).
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "1" })
 
@@ -11,6 +11,7 @@ hl.config({
         disable_splash_rendering = true,
         force_default_wallpaper = 0,
         background_color = 0xff111318,
+        disable_watchdog_warning = true,   -- started without start-hyprland on purpose
     },
     input = {
         numlock_by_default = true,
