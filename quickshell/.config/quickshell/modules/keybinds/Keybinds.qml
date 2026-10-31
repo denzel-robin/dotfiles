@@ -13,7 +13,7 @@ Overlay {
     readonly property var groups: [
         { title: "Shell", icon: "dashboard", binds: [
             ["Super+Space", "App launcher"], ["Super+R", "Wallpapers"], ["Super+V", "Clipboard history"],
-            ["Super+A", "Dashboard"], ["Super+Tab", "Workspace overview"], ["Super+`", "Notifications"], ["Super+Shift+`", "Do Not Disturb"],
+            ["Super+A", "Dashboard"], ["Super+`", "Notifications"], ["Super+Shift+`", "Do Not Disturb"],
             ["Super+L", "Lock screen"], ["Super+Shift+L", "Session menu"], ["Super+/", "This cheat sheet"]
         ] },
         { title: "Apps", icon: "apps", binds: [

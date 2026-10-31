@@ -234,7 +234,6 @@ hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(shell .. "launcher apps"))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("xdg-open \"https://\""))
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(shell .. "launcher wallpapers"))
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(shell .. "toggle dashboard"))
-hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd(shell .. "toggle overview"))
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(discord))
 hl.bind(mainMod .. " + code:51", hl.dsp.exec_cmd("kitty --class floating -e btop")) -- KEY: Back slash
 hl.bind(mainMod .. " + code:34", hl.dsp.exec_cmd("keepassxc -platform xcb"))    -- KEY: Opening square bracket

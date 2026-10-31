@@ -11,7 +11,6 @@ import qs.modules.keybinds
 import qs.modules.lock
 import qs.modules.notifications
 import qs.modules.osd
-import qs.modules.overview
 import qs.modules.session
 import qs.services
 
@@ -31,7 +30,6 @@ ShellRoot {
     Lock {}
     UpdatesMenu {}
     Keybinds {}
-    Overview {}
 
     // `qs ipc call rice <function> [args]` — used by Hyprland keybinds.
     IpcHandler {
@@ -46,7 +44,7 @@ ShellRoot {
             Panels.toggleLauncher(mode || "apps");
         }
 
-        // name: dashboard | notifications | session | overview
+        // name: dashboard | notifications | session
         function toggle(name: string): void {
             Panels.toggle(name);
         }
