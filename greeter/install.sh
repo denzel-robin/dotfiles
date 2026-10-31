@@ -28,7 +28,9 @@ for u in rice-greeter-sync.path rice-greeter-sync.service; do
     sed "s|@HOME@|$home|g; s|@USER@|$user|g" "$here/$u" > "/etc/systemd/system/$u"
 done
 systemctl daemon-reload
-systemctl enable --now rice-greeter-sync.path
+systemctl enable rice-greeter-sync.path
+systemctl reset-failed rice-greeter-sync.service rice-greeter-sync.path 2>/dev/null || true
+systemctl restart rice-greeter-sync.path
 RICE_USER=$user /usr/local/bin/rice-greeter-sync
 
 echo "→ checking the greeter's Hyprland config"

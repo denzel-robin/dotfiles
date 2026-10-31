@@ -1,7 +1,12 @@
 [Unit]
 Description=Copy the rice's wallpaper and colours for the login screen
+# One wallpaper change writes several watched files in a burst; never rate-limit
+# this (a start-limit-hit also stops the .path unit from watching at all).
+StartLimitIntervalSec=0
 
 [Service]
 Type=oneshot
 Environment=RICE_USER=@USER@
+# Debounce: let the burst of writes finish, then copy once
+ExecStartPre=/bin/sleep 2
 ExecStart=/usr/local/bin/rice-greeter-sync

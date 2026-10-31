@@ -18,7 +18,7 @@ matugen image "$img" -m "$mode" --prefer saturation -q
 
 # Blurred copy for the lock screen (done once here, so locking stays smooth)
 mkdir -p "$HOME/.cache/rice"
-ffmpeg -v error -y -i "$img" -frames:v 1 -vf "scale=1920:-2,gblur=sigma=28" -q:v 3 "$HOME/.cache/rice/lock.jpg" &
+{ ffmpeg -v error -y -i "$img" -frames:v 1 -vf "scale=1920:-2,gblur=sigma=28" -q:v 3 "$HOME/.cache/rice/.lock-new.jpg" && mv -f "$HOME/.cache/rice/.lock-new.jpg" "$HOME/.cache/rice/lock.jpg"; } &   # written whole, then swapped in
 
 echo "$img" > "$state/wallpaper"
 echo "$mode" > "$state/mode"
