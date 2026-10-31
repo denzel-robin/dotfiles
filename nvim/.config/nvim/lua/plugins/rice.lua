@@ -77,6 +77,12 @@ return {
   {
     "akinsho/bufferline.nvim",
     opts = function(_, opts)
+      -- keep the tab bar clear of the tree / rail
+      opts.options = opts.options or {}
+      opts.options.offsets = {
+        { filetype = "neo-tree", text = "", highlight = "Directory" },
+        { filetype = "rice-rail", text = "" },
+      }
       opts.highlights = function(config)
         local h = {}
         for name, _ in pairs(config.highlights) do
