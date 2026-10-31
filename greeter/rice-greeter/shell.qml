@@ -23,7 +23,10 @@ ShellRoot {
 
     readonly property string dataDir: Quickshell.env("RICE_GREETER_DATA") || "/var/lib/rice-greeter"
     readonly property bool preview: !Greetd.available
-    readonly property list<string> session: ["start-hyprland"]
+    // Your desktop. The text console is blanked first and logs go to Hyprland's log
+    // file, so nothing flashes between the login screen and the desktop.
+    readonly property list<string> session: ["sh", "-c", "clear; setterm --cursor off; exec start-hyprland >/dev/null 2>&1"]
+    property bool leaving: false   // fading out after a successful login
 
     // ── State ──
     property var colors: ({})
@@ -77,7 +80,22 @@ ShellRoot {
             root.failed(error);
         }
         function onReadyToLaunch() {
-            Greetd.launch(root.session, ["XDG_SESSION_TYPE=wayland", "XDG_CURRENT_DESKTOP=Hyprland", "XDG_SESSION_DESKTOP=Hyprland"], true);
+            root.leaving = true;   // fade to black, then start the desktop (fadeOut timer)
+        }
+    }
+
+    // After the fade to black, hand over to the desktop
+    Timer {
+        id: fadeOut
+        interval: 450
+        running: root.leaving
+        onTriggered: {
+            if (root.preview) {
+                console.log("preview: would launch", root.session.join(" "), "for", root.user.name);
+                Qt.quit();
+            } else {
+                Greetd.launch(root.session, ["XDG_SESSION_TYPE=wayland", "XDG_CURRENT_DESKTOP=Hyprland", "XDG_SESSION_DESKTOP=Hyprland"], true);
+            }
         }
     }
 
@@ -86,8 +104,7 @@ ShellRoot {
         interval: 700
         onTriggered: {
             if (root.password.includes("test")) {
-                console.log("preview: would launch", root.session.join(" "), "for", root.user.name);
-                Qt.quit();
+                root.leaving = true;
             } else {
                 root.failed("Wrong password (preview: type something containing \"test\")");
             }
@@ -145,6 +162,7 @@ ShellRoot {
             Component.onCompleted: enter = 1
             Behavior on enter { NumberAnimation { duration: 700; easing.type: Easing.OutCubic } }
 
+            // Fade to black on successful login (drawn above everything, see the end)
             // Pre-blurred wallpaper (the same image the lock screen uses)
             Image {
                 anchors.fill: parent
@@ -416,6 +434,15 @@ ShellRoot {
                         }
                     }
                 }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: "black"
+                opacity: root.leaving ? 1 : 0
+                visible: opacity > 0
+
+                Behavior on opacity { NumberAnimation { duration: 400; easing.type: Easing.InOutQuad } }
             }
         }
     }

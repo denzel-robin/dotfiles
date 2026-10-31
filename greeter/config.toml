@@ -3,7 +3,8 @@
 vt = 1
 
 [default_session]
-# Through start-hyprland (Hyprland warns otherwise). The greeter user's home is "/",
-# so Hyprland/Quickshell get a writable cache.
-command = "env XDG_CACHE_HOME=/var/cache/rice-greeter XDG_STATE_HOME=/var/cache/rice-greeter/state XDG_DATA_HOME=/var/cache/rice-greeter/data start-hyprland -- --config /etc/greetd/hyprland.lua"
+# Blank the text console (no logs, no cursor) so nothing shows between the login screen
+# and the desktop. Through start-hyprland (Hyprland warns otherwise). The greeter user's
+# home is "/", so Hyprland/Quickshell get a writable cache. Logs still go to Hyprland's log file.
+command = "sh -c 'clear; setterm --cursor off; exec env XDG_CACHE_HOME=/var/cache/rice-greeter XDG_STATE_HOME=/var/cache/rice-greeter/state XDG_DATA_HOME=/var/cache/rice-greeter/data start-hyprland -- --config /etc/greetd/hyprland.lua >/dev/null 2>&1'"
 user = "greeter"
