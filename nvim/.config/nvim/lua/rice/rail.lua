@@ -6,7 +6,7 @@
 --              Space+e pins it open (or collapses it).
 local M = {
   collapsed_width = 4,
-  expanded_width = 32,
+  expanded_width = 24,
   pinned = false, -- expanded with Space+e: stays open when you leave it
 }
 
