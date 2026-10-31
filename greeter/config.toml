@@ -4,5 +4,5 @@ vt = 1
 
 [default_session]
 # The greeter user's home is "/", so give Hyprland/Quickshell a writable cache
-command = "env XDG_CACHE_HOME=/var/cache/rice-greeter XDG_STATE_HOME=/var/cache/rice-greeter/state Hyprland --config /etc/greetd/hyprland.lua"
+command = "env XDG_CACHE_HOME=/var/cache/rice-greeter XDG_STATE_HOME=/var/cache/rice-greeter/state XDG_DATA_HOME=/var/cache/rice-greeter/data Hyprland --config /etc/greetd/hyprland.lua"
 user = "greeter"

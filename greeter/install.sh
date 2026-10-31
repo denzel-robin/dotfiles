@@ -19,7 +19,7 @@ install -m 644 "$here/hyprland.lua" /etc/greetd/hyprland.lua
 install -m 644 "$here/config.toml" /etc/greetd/config.toml
 
 # The greeter user's home is "/" (not writable): give it its own cache
-install -d -o greeter -g greeter -m 750 /var/cache/rice-greeter /var/cache/rice-greeter/state
+install -d -o greeter -g greeter -m 750 /var/cache/rice-greeter /var/cache/rice-greeter/state /var/cache/rice-greeter/data
 
 echo "→ wallpaper sync"
 install -m 755 "$here/rice-greeter-sync" /usr/local/bin/rice-greeter-sync
