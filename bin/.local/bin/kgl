@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+# kgl — edit Kaggle notebooks here, run them on Kaggle's GPUs, get the results back.
+# Notebooks live in ~/Kaggle/<name>/ (the .ipynb plus Kaggle's kernel-metadata.json).
+set -euo pipefail
+
+ROOT="${KGL_ROOT:-$HOME/Kaggle}"
+POLL=15
+
+die() { printf '\e[31mkgl: %s\e[0m\n' "$*" >&2; exit 1; }
+say() { printf '\e[1m%s\e[0m\n' "$*"; }
+
+usage() {
+    cat <<EOF
+kgl — run notebooks on Kaggle from this laptop
+
+  kgl list                    your notebooks on Kaggle
+  kgl new <name> [--cpu]      start a notebook in ~/Kaggle/<name> (private, GPU T4, internet on)
+  kgl pull <name>             download one of your notebooks into ~/Kaggle/<name>
+  kgl data <owner/dataset>    attach a Kaggle dataset (appears under /kaggle/input/ when it runs)
+  kgl run [--accel ACC]       push and run on Kaggle, wait, then download the outputs
+  kgl status | logs | out     latest run's status, its log, or its output files
+  kgl open                    open the notebook on kaggle.com
+
+Run these inside the notebook's folder, or put the folder last: kgl run ~/Kaggle/<name>
+Accelerators: NvidiaTeslaT4 (default, 2x T4), NvidiaTeslaP100, TpuV5E8
+Outputs land in <folder>/output/. Ctrl+C while waiting only stops waiting; the run continues.
+EOF
+}
+
+# The folder a command works on: last argument if it's a folder, else the current one
+pick_dir() {
+    local d="${1:-.}"
+    [[ -d "$d" || "$d" == /* || "$d" == .* ]] || d="$ROOT/$d"
+    [[ -f "$d/kernel-metadata.json" ]] || die "no kernel-metadata.json in $d (use kgl new or kgl pull first)"
+    realpath "$d"
+}
+
+meta() { python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$1/kernel-metadata.json" "$2"; }
+
+username() {
+    kaggle config view 2>/dev/null | sed -n 's/^- username: //p' | head -1
+}
+
+slugify() { tr '[:upper:]' '[:lower:]' <<<"$1" | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g'; }
+
+cmd_new() {
+    local name="" gpu=true
+    for a in "$@"; do
+        case "$a" in
+            --cpu) gpu=false ;;
+            -*) die "unknown option $a" ;;
+            *) name="$a" ;;
+        esac
+    done
+    [[ -n "$name" ]] || die "usage: kgl new <name> [--cpu]"
+    local slug user dir
+    slug=$(slugify "$name")
+    [[ ${#slug} -ge 5 ]] || die "Kaggle needs a name of at least 5 characters"
+    user=$(username)
+    [[ -n "$user" ]] || die "not logged in: run  kaggle auth login"
+    dir="$ROOT/$slug"
+    [[ ! -e "$dir" ]] || die "$dir already exists"
+    mkdir -p "$dir"
+    python3 -I - "$dir" "$user" "$slug" "$name" "$gpu" <<'EOF'
+import json, sys
+d, user, slug, title, gpu = sys.argv[1:]
+gpu = gpu == "true"
+meta = {
+    "id": f"{user}/{slug}", "title": title, "code_file": f"{slug}.ipynb",
+    "language": "python", "kernel_type": "notebook", "is_private": True,
+    "enable_gpu": gpu, "enable_tpu": False, "enable_internet": True,
+    "dataset_sources": [], "competition_sources": [], "kernel_sources": [], "model_sources": [],
+}
+if gpu:
+    meta["machine_shape"] = "NvidiaTeslaT4"
+json.dump(meta, open(f"{d}/kernel-metadata.json", "w"), indent=2)
+
+def code(src): return {"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [], "source": src}
+cells = [
+    {"cell_type": "markdown", "metadata": {}, "source": f"# {title}\n\nInputs are under `/kaggle/input/`. Save anything you want back to `/kaggle/working/`."},
+    code("import os, torch\nprint('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'none')\nfor root, dirs, files in os.walk('/kaggle/input'):\n    for f in files[:5]:\n        print(os.path.join(root, f))"),
+]
+nb = {"cells": cells, "metadata": {"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"},
+      "language_info": {"name": "python"}}, "nbformat": 4, "nbformat_minor": 4}
+json.dump(nb, open(f"{d}/{slug}.ipynb", "w"), indent=1)
+EOF
+    say "Created $dir"
+    echo "Edit $slug.ipynb, then: cd $dir && kgl run"
+}
+
+cmd_pull() {
+    [[ $# -ge 1 ]] || die "usage: kgl pull <name or owner/name>"
+    local ref="$1" slug
+    [[ "$ref" == */* ]] || ref="$(username)/$ref"
+    slug="${ref#*/}"
+    kaggle kernels pull "$ref" -p "$ROOT/$slug" -m
+    echo "→ $ROOT/$slug"
+}
+
+cmd_data() {
+    [[ $# -ge 1 && "$1" == */* ]] || die "usage: kgl data <owner/dataset> [folder]"
+    local ref="$1" dir
+    dir=$(pick_dir "${2:-.}")
+    kaggle datasets files "$ref" >/dev/null 2>&1 || die "can't find dataset $ref (check the owner/name in its URL)"
+    python3 -I - "$dir/kernel-metadata.json" "$ref" <<'EOF'
+import json, sys
+p, ref = sys.argv[1:]
+m = json.load(open(p))
+src = m.setdefault("dataset_sources", [])
+if ref not in src:
+    src.append(ref)
+json.dump(m, open(p, "w"), indent=2)
+EOF
+    say "Attached $ref"
+    echo "In the notebook it's under /kaggle/input/ (it takes effect on the next kgl run)"
+}
+
+status_of() {
+    kaggle kernels status "$1" 2>&1 | grep -oE 'KernelWorkerStatus\.[A-Z_]+' | sed 's/KernelWorkerStatus\.//' || true
+}
+
+# Kaggle logs are JSON lines; print just the text
+pretty_logs() {
+    python3 -I -c '
+import json, sys
+out = []
+for line in sys.stdin:
+    line = line.strip().lstrip("[,").rstrip("]")
+    if not line.startswith("{"):
+        continue
+    try:
+        out.append(json.loads(line).get("data", ""))
+    except ValueError:
+        pass
+text = "".join(out).splitlines()
+n = int(sys.argv[1])
+print("\n".join(text[-n:] if n else text))
+' "${1:-0}"
+}
+
+cmd_status() { local dir; dir=$(pick_dir "${1:-.}"); kaggle kernels status "$(meta "$dir" id)"; }
+cmd_logs() { local dir; dir=$(pick_dir "${1:-.}"); kaggle kernels logs "$(meta "$dir" id)" | pretty_logs; }
+
+cmd_out() {
+    local dir id
+    dir=$(pick_dir "${1:-.}")
+    id=$(meta "$dir" id)
+    mkdir -p "$dir/output"
+    kaggle kernels output "$id" -p "$dir/output" -o
+    echo "→ $dir/output"
+}
+
+cmd_open() {
+    local dir; dir=$(pick_dir "${1:-.}")
+    xdg-open "https://www.kaggle.com/code/$(meta "$dir" id)" >/dev/null 2>&1 &
+}
+
+cmd_run() {
+    local accel="" target="."
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --accel) accel="${2:-}"; shift 2 ;;
+            -*) die "unknown option $1" ;;
+            *) target="$1"; shift ;;
+        esac
+    done
+    local dir id title out start s last=""
+    dir=$(pick_dir "$target")
+    id=$(meta "$dir" id)
+    title=$(meta "$dir" title)
+
+    say "Pushing $id"
+    out=$(kaggle kernels push -p "$dir" ${accel:+--accelerator "$accel"} 2>&1) || { echo "$out"; die "push failed"; }
+    echo "$out"
+    grep -qi 'successfully pushed' <<<"$out" || die "Kaggle didn't accept the push (see above)"
+
+    say "Running on Kaggle — Ctrl+C stops waiting, not the run"
+    start=$(date +%s)
+    sleep 5
+    while :; do
+        s=$(status_of "$id")
+        if [[ "$s" != "$last" ]]; then
+            printf '  %s  %s\n' "$(date +%H:%M:%S)" "${s:-unknown}"
+            last="$s"
+        fi
+        case "$s" in
+            COMPLETE | ERROR | CANCEL_ACKNOWLEDGED | CANCEL_REQUESTED) break ;;
+        esac
+        sleep "$POLL"
+    done
+    local took=$(( ($(date +%s) - start) / 60 ))
+
+    if [[ "$s" == COMPLETE ]]; then
+        mkdir -p "$dir/output"
+        kaggle kernels output "$id" -p "$dir/output" -o -q || true
+        say "Done in ${took} min → $dir/output"
+        ls -1 "$dir/output" | head -20
+        notify-send -a Kaggle "$title finished" "Took ${took} min. Outputs in ~/Kaggle/$(basename "$dir")/output" 2>/dev/null || true
+    else
+        say "Run ended: $s — last lines of the log:"
+        kaggle kernels logs "$id" 2>/dev/null | grep -v 'NbConvertApp\|SyntaxWarning\|re.sub(' | pretty_logs 30 || true
+        notify-send -a Kaggle -u critical "$title failed" "Status: $s. See: kgl logs" 2>/dev/null || true
+        exit 1
+    fi
+}
+
+case "${1:-}" in
+    list) kaggle kernels list --mine ;;
+    new) shift; cmd_new "$@" ;;
+    pull) shift; cmd_pull "$@" ;;
+    data) shift; cmd_data "$@" ;;
+    run) shift; cmd_run "$@" ;;
+    status) shift; cmd_status "$@" ;;
+    logs) shift; cmd_logs "$@" ;;
+    out) shift; cmd_out "$@" ;;
+    open) shift; cmd_open "$@" ;;
+    "" | -h | --help | help) usage ;;
+    *) die "unknown command $1 (kgl help)" ;;
+esac
