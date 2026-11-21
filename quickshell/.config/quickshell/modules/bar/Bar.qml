@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.config
-import qs.modules.jobs // jobs-tracker
 
 // Floating islands down the left edge of the screen.
 PanelWindow {
@@ -45,7 +44,6 @@ PanelWindow {
             anchors.bottom: parent.bottom
             spacing: Appearance.bar.islandSpacing
 
-            JobsIsland {} // jobs-tracker
             Tray {}
             UpdatesIsland {}
             Bell {}
