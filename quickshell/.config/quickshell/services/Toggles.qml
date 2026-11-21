@@ -4,7 +4,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Networking
-import Quickshell.Services.UPower
 
 // State and actions for the dashboard's quick toggles.
 Singleton {
@@ -57,12 +56,45 @@ Singleton {
     }
 
     // ── Power profile ──
-    readonly property int profile: PowerProfiles.profile
-    readonly property string profileName: profile === PowerProfile.PowerSaver ? "Saver" : profile === PowerProfile.Performance ? "Performance" : "Balanced"
-    readonly property string profileIcon: profile === PowerProfile.PowerSaver ? "energy_savings_leaf" : profile === PowerProfile.Performance ? "bolt" : "balance"
+    // Read with powerprofilesctl in the background rather than Quickshell's PowerProfiles
+    // service: that one waits for power-profiles-daemon, which only starts once boot has
+    // finished (after the Wi-Fi connects), and held up the whole shell for ~13 s after login.
+    property string profile: "balanced"           // "power-saver" | "balanced" | "performance"
+    property bool hasPerformance: true
+    readonly property string profileName: profile === "power-saver" ? "Saver" : profile === "performance" ? "Performance" : "Balanced"
+    readonly property string profileIcon: profile === "power-saver" ? "energy_savings_leaf" : profile === "performance" ? "bolt" : "balance"
     function cycleProfile(): void {
-        const next = profile === PowerProfile.PowerSaver ? "balanced" : profile === PowerProfile.Balanced && PowerProfiles.hasPerformanceProfile ? "performance" : "power-saver";
-        Quickshell.execDetached(["powerprofilesctl", "set", next]);
+        const next = profile === "power-saver" ? "balanced" : profile === "balanced" && hasPerformance ? "performance" : "power-saver";
+        profile = next;   // show it straight away
+        profileSet.command = ["powerprofilesctl", "set", next];
+        profileSet.running = true;
+    }
+
+    Process {
+        id: profileSet
+        onExited: profileGet.running = true
+    }
+
+    Process {
+        id: profileGet
+        command: ["powerprofilesctl", "list"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const current = (text.match(/^\* (\S+):/m) ?? [])[1];
+                if (current)
+                    root.profile = current;
+                root.hasPerformance = /^\*?\s*performance:/m.test(text);
+            }
+        }
+    }
+
+    // Also catches changes made elsewhere (powerprofilesctl, power button, …)
+    Timer {
+        interval: 20000
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: profileGet.running = true
     }
 
     // ── Night light (hyprsunset) ──
