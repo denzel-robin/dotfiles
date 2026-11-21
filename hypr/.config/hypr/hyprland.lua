@@ -279,6 +279,9 @@ hl.bind("XF86AudioMute",        hl.dsp.exec_cmd(shell .. "volume mute"),     { l
 hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd(shell .. "volume mic"),      { locked = true })
 hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd(shell .. "brightness up"),   { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd(shell .. "brightness down"), { locked = true, repeating = true })
+-- Ctrl + keyboard knob adjusts brightness (the knob sends volume keys; its Fn state isn't usable)
+hl.bind("CTRL + XF86AudioRaiseVolume", hl.dsp.exec_cmd(shell .. "brightness up"),   { locked = true, repeating = true })
+hl.bind("CTRL + XF86AudioLowerVolume", hl.dsp.exec_cmd(shell .. "brightness down"), { locked = true, repeating = true })
 
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
